@@ -20,7 +20,7 @@ class ExIntegrator : public Integrator {
   void setDamping();
   
   std::vector<RodConstraint*> constraints;
-  Eigen::Matrix<real, Eigen::Dynamic, Eigen::Dynamic> modes;
+  MatXe modes;
 public:
   ExIntegrator(Rod&, std::vector<RodEnergy*>&, std::vector<RodConstraint*>* = nullptr);
   bool integrate(Clock&);

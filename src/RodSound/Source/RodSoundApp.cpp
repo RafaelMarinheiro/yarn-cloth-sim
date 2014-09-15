@@ -22,6 +22,7 @@
 #include "Rod.h"
 #include "FrameExporter.h"
 #include "ExIntegrator.h"
+#include "ExpIntegrator.h"
 #include "YarnBuilder.h"
 #include "BEMSolver.h"
 
@@ -551,7 +552,7 @@ void RodSoundApp::loadRodFile(std::string filename) {
 void RodSoundApp::loadDefaultRod(int numPoints) {
   if (r) delete r;
   
-  Vec3e start = Vec3e(0.0, 1.9144, 0.0); // Vec3e(0.5, 1.0, 0.5);
+  Vec3e start = Vec3e(0.0, 1.6069, 0.0); // Vec3e(0.5, 1.0, 0.5);
   Vec3e end   = Vec3e(0.0, 1.0, 0.0); // start + (Vec3e(-1.0, -1.0, -1.0).normalized() * 0.6069);
   // 1ft. = 0.3048m
   // 2ft. = 0.6069m
@@ -635,7 +636,6 @@ void RodSoundApp::loadStdEnergies() {
   RodEnergy* floor = new PlaneContact(*r, Explicit, floorNormal, floorOrigin, 5000.0);
 //  energies.push_back(floor);
   
-  
   Vec3e imp1dir(1.0e-5, 0.0, 0.0);
   Vec3e imp2dir(-1.0e-5, 0.0, 0.0);
   Vec3e imp3dir(0.0, 0.0, 1.0e-10);
@@ -650,7 +650,7 @@ void RodSoundApp::loadStdEnergies() {
   RodEnergy* spr2 = new Spring(*r, Explicit, r->numCPs()-1, 1e5);
   Vec3e spr2clamp = r->rest().POS(r->numCPs()-1);
   static_cast<Spring*>(spr2)->setClamp(spr2clamp);
-  energies.push_back(spr1); energies.push_back(spr2);
+//  energies.push_back(spr1); energies.push_back(spr2);
   
   /*
   

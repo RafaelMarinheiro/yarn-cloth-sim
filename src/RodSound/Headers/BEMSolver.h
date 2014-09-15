@@ -36,8 +36,8 @@ static Mat2e solveBEM(real r) {
   
   std::size_t n = n_N + n_D;
   
-  Eigen::Matrix<real, Eigen::Dynamic, Eigen::Dynamic> C(n, n);
-  Eigen::Matrix<real, Eigen::Dynamic, Eigen::Dynamic> A_N(n, n_N);
+  MatXe C(n, n);
+  MatXe A_N(n, n_N);
   Eigen::Matrix<real, Eigen::Dynamic, 2> n_i(n_N, 2);
   Eigen::Matrix<real, Eigen::Dynamic, 2> u(n, 2);
   

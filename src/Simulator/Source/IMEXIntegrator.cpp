@@ -165,7 +165,7 @@ bool IMEXIntegrator::integrate(Clock& c) {
 
 void static calcRotEqs(const Rod& r, const VecXe& rot, const std::vector<Vec3e>& curveBinorm,
                       VecXe& grad, std::vector<Triplet>& triplets) {
-  Eigen::Matrix<real, 2, 2> J;
+  Mat2e J;
   J << 0.0, -1.0, 1.0, 0.0;
   for (int i=1; i<r.numEdges()-1; i++) {
     Vec3e m1 = cos(rot(i)) * r.next().u[i] + sin(rot(i)) * r.next().v(i);

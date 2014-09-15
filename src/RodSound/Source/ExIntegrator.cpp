@@ -21,7 +21,7 @@ ExIntegrator::ExIntegrator(Rod& r, std::vector<RodEnergy*>& energies,
 #ifdef DRAW_EIGENMODE
   // Test eigenvalues to extract frequencies.
   Eigen::SparseMatrix<real> lklt = r.getInvMass().sparse * stiffness;
-  Eigen::SelfAdjointEigenSolver<Eigen::Matrix<real, Eigen::Dynamic, Eigen::Dynamic>> saes(lklt.toDense());
+  Eigen::SelfAdjointEigenSolver<MatXe> saes(lklt.toDense());
   for (int i=0; i<dof; i++) {
     real eigval = saes.eigenvalues()(i);
     if (eigval < 0) continue; // Only positive eigenvalues contribute.

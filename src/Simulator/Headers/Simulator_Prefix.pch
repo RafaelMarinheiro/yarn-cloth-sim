@@ -36,6 +36,7 @@ typedef double real;
 
 typedef Eigen::Matrix<real, 2, 2> Mat2e;
 typedef Eigen::Matrix<real, 3, 3> Mat3e;
+typedef Eigen::Matrix<real, Eigen::Dynamic, Eigen::Dynamic> MatXe;
 
 typedef Eigen::Matrix<real, 2, 1> Vec2e;
 typedef Eigen::Matrix<real, 3, 1> Vec3e;
