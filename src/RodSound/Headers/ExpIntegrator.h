@@ -25,7 +25,7 @@ class ExpIntegrator : public Integrator {
   void static testArnoldi();
   void static arnoldi(const Eigen::SparseMatrix<real>& A, const VecXe& v, MatXe& Q, MatXe& H);
   void static matFunc(const Eigen::SparseMatrix<real>& A, const VecXe& v, const std::size_t m,
-                      const std::function<real(real)>& f, VecXe& z);
+                      const std::function<complex(complex)>& f, VecXe& z);
   
 public:
   ExpIntegrator(Rod&, std::vector<RodEnergy*>&);

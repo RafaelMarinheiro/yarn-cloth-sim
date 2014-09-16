@@ -10,9 +10,9 @@
 
 ExpIntegrator::ExpIntegrator(Rod& r, std::vector<RodEnergy*>& energies) : Integrator(r, energies) {
   // Stiffness coefficient
-  alpha1 = 1.0e-9;
+  alpha1 = 0.0;
   // Mass coefficient
-  alpha2 = 2.0;
+  alpha2 = 0.0;
   
   stiffness.resize(r.numDOF(), r.numDOF());
   setDamping();
@@ -60,22 +60,34 @@ void ExpIntegrator::arnoldi(const Eigen::SparseMatrix<real>& A, const VecXe& v, 
 /// Performs a unitary function on a matrix and multiplies it by a given vector v, writing output
 /// to z. This is done by diagonalizing the (m x m) Hessian given by Arnoldi iteration.
 void ExpIntegrator::matFunc(const Eigen::SparseMatrix<real>& A, const VecXe& v, const std::size_t m,
-                    const std::function<real(real)>& f, VecXe& z) {
+                    const std::function<complex(complex)>& f, VecXe& z) {
   // First, check if input is zero. If it is, just return zero.
   if (v.norm() == 0.0) {
     z = VecXe::Zero(v.rows());
     return;
   }
   
+  // Otherwise, perform a the functions on a Krylov subspace.
   MatXe Q(v.rows(), m+1);
   MatXe H(m, m);
-  arnoldi(A, v, Q, H); // sets Q and H
-    
-  Eigen::SelfAdjointEigenSolver<MatXe> saes(H);
-  // z = T^T * f(D) * T * e1. z is now (m x 1).
-  z.noalias() = saes.eigenvectors().transpose() *(saes.eigenvalues()
-                                                  .unaryExpr(f)
-                                                  .cwiseProduct(saes.eigenvectors().col(0)));
+  arnoldi(A, v, Q, H); // sets Q and H. Q now has dimensions (n x m).
+  
+  if (H.isApprox(H.transpose())) {
+    Eigen::SelfAdjointEigenSolver<MatXe> saes(H);
+    // z = T^T * f(D) * T * e1. z is now (m x 1).
+    z.noalias() = saes.eigenvectors() * (saes.eigenvalues()
+                                         .unaryExpr(f)
+                                         .cwiseProduct(saes.eigenvectors().row(0).transpose())).real();
+  } else {
+    Eigen::EigenSolver<MatXe> es(H);
+    // zc = T^T * f(D) * T * e1. zc is now (m x 1).
+    Eigen::Matrix<complex, Eigen::Dynamic, 1> zc;
+    zc.noalias() = es.eigenvectors() * (es.eigenvalues()
+                                        .unaryExpr(f)
+                                        .cwiseProduct(es.eigenvectors().row(0).transpose()));
+    // z is the real part of zc (hopefully zc has no imaginary component??). z is now (m x 1).
+    z = zc.real();
+  }
   // z = ||v|| * Q * z. z is now (n x 1).
   z = v.norm() * (Q * z);
   CHECK_NAN_VEC(z);
@@ -83,27 +95,24 @@ void ExpIntegrator::matFunc(const Eigen::SparseMatrix<real>& A, const VecXe& v, 
 
 bool ExpIntegrator::integrate(Clock& c) {
   bool argFiltering = false; // TODO: what does this do?
-  std::size_t krylovBasisSize = 5;
+  std::size_t krylovBasisSize = 15;
   
   real h = c.timestep();
   // Choose (psi(·), phi(·)) = (sinc^2(·), sinc(·)).
-  std::function<real(real)> psi = [h] (real k) {
-    assert(k >= 0.0);
-    real x = h * sqrt(k);
+  std::function<complex(complex)> psi = [h] (complex k) {
+    complex x = h * std::sqrt(k);
     x = (x == 0.0) ? 1.0 : sin(x) / x;
     return x * x;
   };
-  std::function<real(real)> phi = [h] (real k) {
-    assert(k >= 0.0);
-    real x = h * sqrt(k);
+  std::function<complex(complex)> phi = [h] (complex k) {
+    complex x = h * std::sqrt(k);
     return (x == 0.0) ? 1.0 : sin(x) / x;
   };
-  std::function<real(real)> cosSqrt = [h] (real k) {
-    assert(k >= 0.0);
-    return cos(h * sqrt(k));
+  std::function<complex(complex)> cosSqrt = [h] (complex k) {
+    return cos(h * std::sqrt(k));
   };
   
-  if (c.getTicks() % 1000 == 0) { // Periodically reset linearize (sets damping and stiffness)
+  if (c.getTicks() % 100 == 0) { // Periodically linearize the system (sets damping and stiffness)
     setDamping();
   }
   

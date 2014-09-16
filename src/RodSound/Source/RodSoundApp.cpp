@@ -92,7 +92,7 @@ class RodSoundApp : public AppNative {
   std::size_t curSample = 0;
   double sampleBuffer3[BufferSize];
   
-  std::size_t multiSample = 13;
+  std::size_t multiSample = 1;
   FrameExporter fe;
 };
 
@@ -610,7 +610,7 @@ void RodSoundApp::loadStdEnergies() {
   
   
   RodEnergy* stretch = new Stretching(*r, Explicit);
-  energies.push_back(stretch);
+//  energies.push_back(stretch);
   // OR
   //RodConstraint* length = new Length(*r);
   //constraints.push_back(length);
@@ -636,7 +636,7 @@ void RodSoundApp::loadStdEnergies() {
   RodEnergy* floor = new PlaneContact(*r, Explicit, floorNormal, floorOrigin, 5000.0);
 //  energies.push_back(floor);
   
-  Vec3e imp1dir(1.0e-5, 0.0, 0.0);
+  Vec3e imp1dir(1.0e-10, 0.0, 0.0);
   Vec3e imp2dir(-1.0e-5, 0.0, 0.0);
   Vec3e imp3dir(0.0, 0.0, 1.0e-10);
   RodEnergy* imp1 = new Impulse(*r, Explicit, c, 0.2, 0.201, imp1dir, 3);
@@ -660,7 +660,7 @@ void RodSoundApp::loadStdEnergies() {
    */
   
   if (integrator) delete integrator;
-  integrator = new ExIntegrator(*r, energies, &constraints);
+  integrator = new ExpIntegrator(*r, energies); //, &constraints);
 }
 
 
