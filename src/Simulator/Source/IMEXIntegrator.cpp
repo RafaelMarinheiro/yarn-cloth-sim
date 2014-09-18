@@ -29,8 +29,8 @@ Integrator(r, energies) {
 bool IMEXIntegrator::integrate(Clock& c) {
   PROFILER_START("Total");
   
-  const real ConvergenceThreshold = 0.0125 * r.numCPs();
-  const real ConvergenceTolerance = 1.25 * r.numCPs();
+  const real ConvergenceThreshold = 0.00125 * r.numCPs();
+  const real ConvergenceTolerance = 0.125 * r.numCPs();
   
   bool evalSuccess = false;
   bool newtonConverge = false;
