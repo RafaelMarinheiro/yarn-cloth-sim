@@ -26,6 +26,8 @@
 #include "YarnBuilder.h"
 #include "BEMSolver.h"
 
+#include "Test.h"
+
 using namespace ci;
 using namespace ci::app;
 
@@ -98,6 +100,7 @@ class RodSoundApp : public AppNative {
 
 void RodSoundApp::setup()
 {
+//  test();
 //  std::cout << solveBEM(constants::radius) << "\n\n";
 //  std::cout << "Expected:\n" << -constants::pi * constants::radius * constants::radius * Mat2e::Identity() << "\n\n";
   
@@ -169,6 +172,19 @@ void RodSoundApp::setup()
   loadDefaultRod(50);
   // loadRodFile("");
   loadStdEnergies();
+  
+  /*
+  // TESTING
+  int start = 10;
+  int end = 15;
+  real amp = 1e-15;
+  for (int i=start; i <= end; i++) {
+    r->next().pos(3*i) += std::sin(((real)(i-start))/((real)(end-start))*constants::pi) * amp;
+  }
+  
+  r->next().updateReferenceFrames(r->cur());
+  r->swapRods();
+   */
   
   PROFILER_START("Total");
 }
@@ -565,7 +581,7 @@ void RodSoundApp::loadDefaultRod(int numPoints) {
   
   VecXe rodPos(3*numPoints);
   for(int i=0; i < numPoints; i++) {
-    real t = ((real) i) / (real) (numPoints -1);
+    real t = ((real) i) / (real) (numPoints-1);
     rodPos.segment<3>(3*i) = (1-t)*start + t*end;
   }
   
@@ -660,7 +676,8 @@ void RodSoundApp::loadStdEnergies() {
    */
   
   if (integrator) delete integrator;
-  integrator = new ExpIntegrator(*r, energies); //, &constraints);
+  // integrator = new ExIntegrator(*r, energies, &constraints);
+  integrator = new ExpIntegrator(*r, energies);
 }
 
 

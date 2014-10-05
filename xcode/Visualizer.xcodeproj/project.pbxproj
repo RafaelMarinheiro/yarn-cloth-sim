@@ -36,6 +36,7 @@
 		715454C4188495D300F2C196 /* Common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 715454C3188495D200F2C196 /* Common.cpp */; };
 		717DD768188EF95E00D3BFA2 /* Compressor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 717DD766188EF95E00D3BFA2 /* Compressor.cpp */; };
 		7181B512198054FB005C3EBB /* BEMSolver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7181B510198054FB005C3EBB /* BEMSolver.cpp */; };
+		718E64AB19CB867200E60CFA /* ExpIntegrator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 71A05D9319B7AF2900449CFD /* ExpIntegrator.cpp */; };
 		719F3A95193E71B30096FC24 /* SimulatorApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 71CAE65318C78D7E002C9FD3 /* SimulatorApp.cpp */; };
 		719F3A97193E71B30096FC24 /* IMEXIntegrator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 719B0C5118BBE9F200FB1633 /* IMEXIntegrator.cpp */; };
 		719F3A98193E71B30096FC24 /* Energy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 715D32B518FC60490061154E /* Energy.cpp */; };
@@ -142,6 +143,7 @@
 		71AAF9DE1896EB8D00710A16 /* Decompressor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Decompressor.h; path = ../src/Visualizer/Headers/Decompressor.h; sourceTree = "<group>"; };
 		71AAF9E01898425100710A16 /* vis-frag.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "vis-frag.glsl"; path = "../resources/vis-frag.glsl"; sourceTree = "<group>"; };
 		71AAF9E11898425100710A16 /* vis-vert.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "vis-vert.glsl"; path = "../resources/vis-vert.glsl"; sourceTree = "<group>"; };
+		71BF2EA119CCBCCC00D0BA2B /* Test.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Test.h; sourceTree = "<group>"; };
 		71CA57001940E6930076A3F2 /* Macros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Macros.h; path = Headers/Macros.h; sourceTree = "<group>"; };
 		71CA570119420BD80076A3F2 /* ConstraintIntegrator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConstraintIntegrator.cpp; sourceTree = "<group>"; };
 		71CA570219420BD80076A3F2 /* ConstraintIntegrator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ConstraintIntegrator.h; path = Headers/ConstraintIntegrator.h; sourceTree = "<group>"; };
@@ -408,10 +410,11 @@
 			isa = PBXGroup;
 			children = (
 				7181B511198054FB005C3EBB /* BEMSolver.h */,
-				71A05D9419B7AF2900449CFD /* ExpIntegrator.h */,
 				713EE2001947884E0010304B /* ExIntegrator.h */,
+				71A05D9419B7AF2900449CFD /* ExpIntegrator.h */,
 				713EE202194A10340010304B /* FrameExporter.h */,
 				71CA573A19463A870076A3F2 /* RodSoundApp.h */,
+				71BF2EA119CCBCCC00D0BA2B /* Test.h */,
 			);
 			path = Headers;
 			sourceTree = "<group>";
@@ -588,6 +591,7 @@
 				719F3A95193E71B30096FC24 /* SimulatorApp.cpp in Sources */,
 				71CA570319420BD80076A3F2 /* ConstraintIntegrator.cpp in Sources */,
 				719F3A97193E71B30096FC24 /* IMEXIntegrator.cpp in Sources */,
+				718E64AB19CB867200E60CFA /* ExpIntegrator.cpp in Sources */,
 				71CA570619420C960076A3F2 /* Constraint.cpp in Sources */,
 				719F3A98193E71B30096FC24 /* Energy.cpp in Sources */,
 				713EE1FD19477EBB0010304B /* Integrator.cpp in Sources */,

@@ -10,9 +10,9 @@
 
 ExpIntegrator::ExpIntegrator(Rod& r, std::vector<RodEnergy*>& energies) : Integrator(r, energies) {
   // Stiffness coefficient
-  alpha1 = 0.0;
+  alpha1 = 1.0e-9;
   // Mass coefficient
-  alpha2 = 0.0;
+  alpha2 = 2.0;
   
   stiffness.resize(r.numDOF(), r.numDOF());
   setDamping();
@@ -62,7 +62,8 @@ void ExpIntegrator::arnoldi(const Eigen::SparseMatrix<real>& A, const VecXe& v, 
 void ExpIntegrator::matFunc(const Eigen::SparseMatrix<real>& A, const VecXe& v, const std::size_t m,
                     const std::function<complex(complex)>& f, VecXe& z) {
   // First, check if input is zero. If it is, just return zero.
-  if (v.norm() == 0.0) {
+  real vNorm = v.norm();
+  if (vNorm == 0.0) {
     z = VecXe::Zero(v.rows());
     return;
   }
@@ -74,23 +75,43 @@ void ExpIntegrator::matFunc(const Eigen::SparseMatrix<real>& A, const VecXe& v, 
   
   if (H.isApprox(H.transpose())) {
     Eigen::SelfAdjointEigenSolver<MatXe> saes(H);
-    // z = T^T * f(D) * T * e1. z is now (m x 1).
+    
+    // z = T * f(D) * T^T * e1. z is now (m x 1).
     z.noalias() = saes.eigenvectors() * (saes.eigenvalues()
                                          .unaryExpr(f)
                                          .cwiseProduct(saes.eigenvectors().row(0).transpose())).real();
   } else {
     Eigen::EigenSolver<MatXe> es(H);
-    // zc = T^T * f(D) * T * e1. zc is now (m x 1).
-    Eigen::Matrix<complex, Eigen::Dynamic, 1> zc;
+    typedef Eigen::Matrix<complex, Eigen::Dynamic, 1> VecXec;
+    VecXec zc;
+    // zc = T * f(D) * T^(-1) * e1. zc is now (m x 1).
     zc.noalias() = es.eigenvectors() * (es.eigenvalues()
                                         .unaryExpr(f)
-                                        .cwiseProduct(es.eigenvectors().row(0).transpose()));
+                                        .cwiseProduct(es.eigenvectors()
+                                                      .lu().solve(VecXec::Unit(m, 0))));
     // z is the real part of zc (hopefully zc has no imaginary component??). z is now (m x 1).
     z = zc.real();
+    if (zc.imag().norm() > 1e-10) {
+      std::cout << "Warning: non-trivial imag component ignored: " << zc.imag().norm() << "\n";
+    }
   }
   // z = ||v|| * Q * z. z is now (n x 1).
-  z = v.norm() * (Q * z);
+  z = vNorm * (Q * z);
   CHECK_NAN_VEC(z);
+  
+  /*
+  // TESTING
+  Eigen::SelfAdjointEigenSolver<MatXe> saes(A.toDense());
+  assert(saes.info() == Eigen::Success);
+  VecXe ztest;
+  ztest.noalias() = saes.eigenvectors() * ((saes.eigenvalues().unaryExpr(f)).real()
+                                           .cwiseProduct(saes.eigenvectors().transpose() * v));
+  real diff = (z - ztest).norm();
+  if (diff > 1e-13) {
+    std::cout << "z test fail: " << diff << "\n";
+  }
+  // z = ztest;
+   */
 }
 
 bool ExpIntegrator::integrate(Clock& c) {
@@ -112,12 +133,16 @@ bool ExpIntegrator::integrate(Clock& c) {
     return cos(h * std::sqrt(k));
   };
   
-  if (c.getTicks() % 100 == 0) { // Periodically linearize the system (sets damping and stiffness)
-    setDamping();
+  if (c.getTicks() % 100 == 0) { // Periodically linearize the system
+    setDamping(); // Sets stiffness, damping and cachedA
   }
   
+  VecXe xcur = r.cur().pos - r.rest().pos;
+  VecXe xprev = xcur - r.cur().vel * h;
+  
+  
   VecXe xPhi;
-  matFunc(A, r.cur().pos, krylovBasisSize, phi, xPhi); // Sets xPhi
+  matFunc(cachedA, xcur, krylovBasisSize, phi, xPhi); // Sets xPhi
   
   Eigen::SparseMatrix<real> APhi;
   
@@ -129,14 +154,14 @@ bool ExpIntegrator::integrate(Clock& c) {
         e->eval(nullptr, &filteredStiffness, &del);
       }
     }
-    Eigen::SparseMatrix<real> K(A.rows(), A.cols());
+    Eigen::SparseMatrix<real> K(cachedA.rows(), cachedA.cols());
     K.setFromTriplets(filteredStiffness.begin(), filteredStiffness.end());
     APhi = -r.getInvMass().sparse * K;
-    matFunc(APhi, r.cur().pos, krylovBasisSize, phi, xPhi);
+    matFunc(APhi, xcur, krylovBasisSize, phi, xPhi);
     
     // TODO: Should we update the damping matrix as well?
   } else {
-    APhi = A;
+    APhi = cachedA;
   }
   
   VecXe del = xPhi - r.cur().pos;
@@ -146,14 +171,16 @@ bool ExpIntegrator::integrate(Clock& c) {
       e->eval(&extForcesPhi, nullptr, &del);
     }
   }
+  // NOTE: Lambda is defined as the opposite of the forces in the paper!
+  extForcesPhi *= -1.0;
   VecXe lambdaPhi = extForcesPhi + damping * r.cur().vel;
   VecXe xCos;
-  matFunc(APhi, r.cur().pos, krylovBasisSize, cosSqrt, xCos); // sets xCos
+  matFunc(APhi, xcur, krylovBasisSize, cosSqrt, xCos); // sets xCos
   VecXe xPsi;
   matFunc(APhi, lambdaPhi, krylovBasisSize, psi, xPsi); // sets xPsi
   
   // Update rod configuration
-  r.next().pos = 2.0 * xCos + (h * r.cur().vel - r.cur().pos) - h*h*(r.getInvMass().sparse * xPsi);
+  r.next().pos = 2.0 * xCos - xprev - h*h*(r.getInvMass().sparse * xPsi) + r.rest().pos;
   r.next().vel = (r.next().pos - r.cur().pos) / h;
   r.next().dVel = r.next().vel - r.cur().vel;
   
@@ -170,7 +197,7 @@ void ExpIntegrator::setStiffness() {
   stiffness.setFromTriplets(triplets.begin(), triplets.end());
   stiffness *= -1.0;
   
-  A = r.getInvMass().sparse * stiffness;
+  cachedA = r.getInvMass().sparse * stiffness;
 }
 
 void ExpIntegrator::setDamping() {

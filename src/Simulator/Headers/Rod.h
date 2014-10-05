@@ -57,7 +57,7 @@ public:
   /// Stores the reference frame twist for each edge of the rod in a numEdges-length vector.
   VecXe refTwist;
   /// Stores the u component of the reference frame for each edge (numEdges entries).
-  std::vector<Vec3e> u;
+  std::vector<Vec3e, Eigen::aligned_allocator<Vec3e>> u;
   
   /// Calculate a 3-vector representing an edge of the rod (or return a cached calculation).
   const Vec3e inline edge(std::size_t index) const {
@@ -223,7 +223,7 @@ public:
     restRS.refTwist = VecXe::Zero(nEdges);
     
     // Set (twist-free) reference frames
-    restRS.u.push_back(u0);
+    if (nCPs > 1) restRS.u.push_back(u0);
     for(int i=1; i<nEdges; i++) {
       restRS.u.push_back(parallelTransport(restRS.edge(i-1), restRS.edge(i), restRS.u[i-1]));
     }

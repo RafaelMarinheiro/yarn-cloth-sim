@@ -490,6 +490,36 @@ bool Stretching::eval(VecXe* Fx, std::vector<Triplet>* GradFx, const VecXe* offs
     }
     
     if (GradFx) {
+#ifdef ENABLE_STRETCH_AUTODIFF
+      typedef Eigen::Matrix<real, 6, 1> Gradient;
+      typedef Eigen::Matrix<real, 6, 6> Hessian;
+      typedef DScalar2<real, 6, Gradient, Hessian> DScalar;
+      typedef DScalar::DVector3 DVector3;
+      typedef DScalar::DVector2 DVector2;
+      
+      DVector3 dvPrevPoint(DScalar(0, prevPoint.x()),
+                           DScalar(1, prevPoint.y()),
+                           DScalar(2, prevPoint.z()));
+      
+      DVector3 dvNextPoint(DScalar(3, nextPoint.x()),
+                           DScalar(4, nextPoint.y()),
+                           DScalar(5, nextPoint.z()));
+      
+      DVector3 dvSeg = dvNextPoint - dvPrevPoint;
+      
+      DScalar axialStrain = dvSeg.norm()/restEdgeLength - 1.0;
+      DScalar energy = -0.5 * stretchCoeff * axialStrain * axialStrain * restEdgeLength;
+      
+      Hessian hess = energy.getHessian();
+      for (int j=0; j<6; j++) {
+        for (int k=0; k<6; k++) {
+          real val = hess(j,k);
+          CHECK_NAN(val);
+          Triplet t(3*i+j, 3*i+k, val);
+          pushBackIfNotZero(*GradFx, t);
+        }
+      }
+#else // ifdef ENABLE_STRETCH_AUTODIFF
       Mat3e myHess = (Mat3e::Identity()/restEdgeLength -
                       (Mat3e::Identity()/l - ej * ej.transpose() / (l * l * l))); // Verified
       
@@ -505,6 +535,7 @@ bool Stretching::eval(VecXe* Fx, std::vector<Triplet>* GradFx, const VecXe* offs
           pushBackIfNotZero(*GradFx, t);
         }
       }
+#endif // ifdef ENABLE_STRETCH_AUTODIFF
     }
     
   }

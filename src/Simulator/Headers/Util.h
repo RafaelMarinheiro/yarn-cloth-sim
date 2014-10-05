@@ -36,8 +36,9 @@ struct Threadpool
 };
 
 /// Convenience method for checking if two reals are within some epsilon of each other.
-static inline bool is_approx(real f1, real f2, real eps = 1.0e-5) {
-  return std::abs(f1 - f2) < eps;
+/// Similar to Eigen's isApprox(), but useful for single dimensional vales.
+static inline bool isApprox(real f1, real f2, real p = Eigen::NumTraits<real>::dummy_precision()) {
+  return std::abs(f1 - f2) <= p * std::min(std::abs(f1), std::abs(f2));
 }
 
 /// Convenience method for converting a Vec3e to a Vec3c. Useful for draw-time ops.

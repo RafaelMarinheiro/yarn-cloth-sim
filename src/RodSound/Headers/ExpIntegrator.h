@@ -11,12 +11,10 @@
 
 #include "Integrator.h"
 
-#endif /* defined(__Visualizer__ExpIntegrator__) */
-
 class ExpIntegrator : public Integrator {
   Eigen::SparseMatrix<real> damping;
   Eigen::SparseMatrix<real> stiffness;
-  Eigen::SparseMatrix<real> A; // cached InvMass * stiffness
+  Eigen::SparseMatrix<real> cachedA; // cached InvMass * stiffness
   real alpha1;
   real alpha2;
   void setStiffness();
@@ -32,3 +30,5 @@ public:
   bool integrate(Clock&);
   void draw();
 };
+
+#endif /* defined(__Visualizer__ExpIntegrator__) */
