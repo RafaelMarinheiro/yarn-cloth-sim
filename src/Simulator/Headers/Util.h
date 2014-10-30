@@ -15,7 +15,7 @@
 #include <boost/thread/thread.hpp>
 #include <boost/timer.hpp>
 
-// #define ENABLE_CHECK_NAN
+#define ENABLE_CHECK_NAN
 /// If enabled, will check for NaNs; if not, does nothing.
 #ifdef ENABLE_CHECK_NAN
 #define CHECK_NAN(f) assert(!isnan(f) && "NaN Detected.")

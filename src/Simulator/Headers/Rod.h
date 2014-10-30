@@ -356,6 +356,47 @@ public:
     return com / getMass().total;
   }
   
+  /// Get the center of mass of the rest rod.
+  /// FIXME: This should be precomputed.
+  const Vec3e getRestCoM() const {
+    Vec3e com = Vec3e::Zero();
+    VecXe posTimesMass = getMass().sparse * rest().pos;
+    for (int i=0; i<numCPs(); i++) {
+      com += posTimesMass.segment<3>(3*i);
+    }
+    return com / getMass().total;
+  }
+  
+  /// Compute the least squares linear shape matching
+  const void shapeMatching(VecXe& gi) const {
+    Vec3e xcm0 = getRestCoM(); CHECK_NAN_VEC(xcm0);
+    Vec3e xcm  = getCurCoM(); CHECK_NAN_VEC(xcm);
+    
+    Mat3e Apq = Mat3e::Zero();
+    for (int i=0; i<numCPs(); i++) {
+      Vec3e qi = rest().POS(i) - xcm0;
+      Vec3e pi = cur().POS(i) - xcm;
+      Apq += getMass().diag(i) * pi * qi.transpose();
+    }
+    real ghostPointMass = (getMass().diag(0) + getMass().diag(1)) / 2.0;
+    Vec3e modqi = ((rest().POS(0) + rest().POS(1)) / 2.0 + rest().u[0] * 10.0) - xcm0;
+    Vec3e modpi = ((cur().POS(0) + cur().POS(1)) / 2.0 + cur().u[0] * 10.0) - xcm;
+    Apq += ghostPointMass * modpi * modqi.transpose();
+    modqi = rest().edge(0).cross(rest().u[0]) * 10.0 + rest().POS(0) - xcm0;
+    modpi = cur().edge(0).cross(cur().u[0]) * 10.0 + cur().POS(0) - xcm;
+    Apq += ghostPointMass * modpi * modqi.transpose();
+    
+    Eigen::SelfAdjointEigenSolver<Mat3e> saes(Apq.transpose() * Apq);
+    Mat3e Sinv = saes.operatorInverseSqrt(); CHECK_NAN_VEC(Sinv);
+    Mat3e R = Apq * Sinv;
+    
+    gi.resize(numDOF());
+    for (int i=0; i<numCPs(); i++) {
+      gi.segment<3>(3*i) = R * (rest().POS(i) - xcm0) + xcm;
+    }
+    
+  }
+  
   ~Rod() {
     delete curRS;
     delete nextRS;
