@@ -9,6 +9,8 @@
 #ifndef Visualizer_Integrator_h
 #define Visualizer_Integrator_h
 
+#include "Defines.h"
+
 #include "Rod.h"
 #include "Clock.h"
 #include "Energy.h"

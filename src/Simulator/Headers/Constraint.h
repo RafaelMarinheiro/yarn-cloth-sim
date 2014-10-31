@@ -9,6 +9,8 @@
 #ifndef __Visualizer__Constraint__
 #define __Visualizer__Constraint__
 
+#include "Defines.h"
+
 #include <iostream>
 #include "Rod.h"
 

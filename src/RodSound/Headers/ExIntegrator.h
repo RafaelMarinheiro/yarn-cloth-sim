@@ -9,6 +9,8 @@
 #ifndef __Visualizer__ExIntegrator__
 #define __Visualizer__ExIntegrator__
 
+#include "Defines.h"
+
 #include "Integrator.h"
 #include "Constraint.h"
 

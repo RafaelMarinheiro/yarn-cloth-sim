@@ -12,6 +12,8 @@
 #ifndef Visualizer_IMEXIntegrator_h
 #define Visualizer_IMEXIntegrator_h
 
+#include "Defines.h"
+
 #include "Integrator.h"
 #include "Util.h"
 #include "autodiff.h"

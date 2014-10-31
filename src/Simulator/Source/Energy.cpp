@@ -8,6 +8,8 @@
 
 #include "Energy.h"
 
+#include "rodDraw.h"
+
 void pushBackIfNotZero(std::vector<Triplet>& GradFx, Triplet& value) {
   if (value.value() != 0.0) {
     GradFx.push_back(value);
@@ -43,11 +45,11 @@ Spring::Spring(const Rod& r, EvalType et, std::size_t index, real stiffness) :
 bool Spring::eval(VecXe* Fx, std::vector<Triplet>* GradFx, const VecXe* offset) {
   // Drawing ops
 #ifdef DRAW_SPRING
-  Vec3c ciclamp = EtoC(clamp);
-  Vec3c ciindex = EtoC(r.cur().POS(index));
+  Vec3e ciclamp = clamp;
+  Vec3e ciindex = r.cur().POS(index);
   drawFuncs.push_back([ciclamp, ciindex] (real scale) {
-    ci::gl::color(1.0, 0.5, 0.0);
-    ci::gl::drawLine(ciclamp, ciindex);
+    rod::gl::color(1.0, 0.5, 0.0);
+    rod::gl::drawLine(ciclamp, ciindex);
   });
 #endif // ifdef DRAW_SPRING
   
@@ -93,11 +95,11 @@ bool MouseSpring::eval(VecXe* Fx, std::vector<Triplet>* GradFx, const VecXe* off
   }
 #ifdef DRAW_MOUSE_SPRING
   // Drawing Stuff
-  Vec3c cimouse = EtoC(mouse);
-  Vec3c ciindex = EtoC(yPoint);
+  Vec3e cimouse = mouse;
+  Vec3e ciindex = yPoint;
   drawFuncs.push_back([cimouse, ciindex] (real scale) {
-    ci::gl::color(1.0, 0.0, 0.0);
-    ci::gl::drawLine(ciindex, cimouse);
+    rod::gl::color(1.0, 0.0, 0.0);
+    rod::gl::drawLine(ciindex, cimouse);
   });
 #endif // ifdef DRAW_MOUSE_SPRING
   
@@ -447,11 +449,11 @@ bool Bending::eval(VecXe* Fx, std::vector<Triplet>* GradFx, const VecXe* offset)
   
 #ifdef DRAW_BENDING
   for (int i=0; i<r.numCPs(); i++) {
-    Vec3c f = EtoC(forces.segment<3>(3*i));
-    Vec3c p = EtoC(r.cur().POS(i));
+    Vec3e f = forces.segment<3>(3*i);
+    Vec3e p = r.cur().POS(i);
     drawFuncs.push_back([f, p] (real scale) {
-      ci::gl::color(0.4, 1.0, 1.0);
-      ci::gl::drawLine(p, p+f*scale);
+      rod::gl::color(0.4, 1.0, 1.0);
+      rod::gl::drawLine(p, p+f*scale);
     });
   }
 #endif //ifdef DRAW_BENDING
@@ -655,13 +657,13 @@ bool Twisting::eval(VecXe* Fx, std::vector<Triplet>* GradFx, const VecXe* offset
   }
 #ifdef DRAW_TWIST
   for (int i=0; i<r.numCPs(); i++) {
-    Vec3c delta = EtoC(twist.segment<3>(3*i));
+    Vec3e delta = twist.segment<3>(3*i);
     const Rod* rp = &r;
     if (delta.length() > 0.0) drawFuncs.push_back([i, delta, rp] (real scale) {
-      Vec3c s = EtoC(rp->cur().POS(i));
-      Vec3c e = s + delta * scale;
-      ci::gl::color(ci::Color(1.0, 0.5, 0.5));
-      ci::gl::drawLine(s, e);
+      Vec3e s = rp->cur().POS(i);
+      Vec3e e = s + delta * scale;
+      rod::gl::color(ci::Color(1.0, 0.5, 0.5));
+      rod::gl::drawLine(s, e);
     });
   }
 #endif // ifdef DRAW_TWIST
@@ -816,14 +818,14 @@ bool IntContact::eval(VecXe* Fx, std::vector<Triplet>* GradFx, const VecXe* offs
       
 #ifdef DRAW_INT_CONTACT
       for (int k=0; k<4; k++) {
-        Vec3c s1start = EtoC(r.cur().POS(i-1+k));
-        Vec3c s1vec = EtoC(s1draw[k]);
-        Vec3c s2start = EtoC(r.cur().POS(j-1+k));
-        Vec3c s2vec = EtoC(s2draw[k]);
+        Vec3e s1start = r.cur().POS(i-1+k);
+        Vec3e s1vec = s1draw[k];
+        Vec3e s2start = r.cur().POS(j-1+k);
+        Vec3e s2vec = s2draw[k];
         drawFuncs.push_back([s1start, s1vec, s2start, s2vec] (real scale) {
-          ci::gl::color(ci::Color(0.0, 1.0, 0.0));
-          ci::gl::drawLine(s1start, s1start+s1vec*scale);
-          ci::gl::drawLine(s2start, s2start+s2vec*scale);
+          rod::gl::color(ci::Color(0.0, 1.0, 0.0));
+          rod::gl::drawLine(s1start, s1start+s1vec*scale);
+          rod::gl::drawLine(s2start, s2start+s2vec*scale);
         });
       }
 #endif // ifdef DRAW_INT_CONTACT

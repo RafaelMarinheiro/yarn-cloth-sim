@@ -1,13 +1,5 @@
-//
-//  RodSoundApp.h
-//  Visualizer
-//
-//  Created by eschweickart on 3/5/14.
-//
-//
-
-#ifndef __Visualizer__SimulatorApp__
-#define __Visualizer__SimulatorApp__
+#ifndef ROD_SOUND_DEFINES_H
+#define ROD_SOUND_DEFINES_H
 
 #include "Defines.h"
 
@@ -35,7 +27,7 @@ void writeFormat(std::ofstream& stream) {
 }
 
 template <>
-void writeFormat<float>(std::ofstream& stream) {
+inline void writeFormat<float>(std::ofstream& stream) {
   write<short>(stream, 3);
 }
 
@@ -66,4 +58,4 @@ void writeWAVData(
 }
 
 
-#endif /* defined(__Visualizer__SimulatorApp__) */
+#endif // ROD_SOUND_DEFINES_H

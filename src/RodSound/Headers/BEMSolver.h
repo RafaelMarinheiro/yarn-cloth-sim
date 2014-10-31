@@ -9,6 +9,8 @@
 #ifndef __Visualizer__BEMSolver__
 #define __Visualizer__BEMSolver__
 
+#include "Defines.h"
+
 #include "Constants.h"
 #include "Util.h"
 

@@ -9,6 +9,8 @@
 #ifndef Visualizer_Energy_h
 #define Visualizer_Energy_h
 
+#include "Defines.h"
+
 #include "autodiff.h"
 #include "Rod.h"
 #include "Constants.h"

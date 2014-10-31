@@ -9,6 +9,8 @@
 #ifndef __Visualizer__SimulatorApp__
 #define __Visualizer__SimulatorApp__
 
+#include "Defines.h"
+
 #include <iostream>
 
 

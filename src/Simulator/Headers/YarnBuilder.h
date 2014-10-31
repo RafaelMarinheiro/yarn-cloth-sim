@@ -9,6 +9,8 @@
 #ifndef __Visualizer__YarnBuilder__
 #define __Visualizer__YarnBuilder__
 
+#include "Defines.h"
+
 #include <iostream>
 
 class YarnBuilder {

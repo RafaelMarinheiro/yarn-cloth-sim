@@ -9,6 +9,8 @@
 #ifndef Visualizer_Clock_h
 #define Visualizer_Clock_h
 
+#include "Defines.h"
+
 #include "Constants.h"
 
 /// A class that controls the passage of time within a simulation. Decides and keeps track of the

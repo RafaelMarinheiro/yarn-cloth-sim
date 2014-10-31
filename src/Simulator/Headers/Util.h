@@ -9,6 +9,8 @@
 #ifndef Visualizer_Util_h
 #define Visualizer_Util_h
 
+#include "Defines.h"
+
 #include "Eigen/Dense"
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
@@ -41,15 +43,27 @@ static inline bool isApprox(real f1, real f2, real p = Eigen::NumTraits<real>::d
   return std::abs(f1 - f2) <= p * std::min(std::abs(f1), std::abs(f2));
 }
 
+#include <QGLViewer/qglviewer.h>
+
 /// Convenience method for converting a Vec3e to a Vec3c. Useful for draw-time ops.
-const Vec3c static inline EtoC(const Vec3e& v) {
-  return Vec3c(v.x(), v.y(), v.z());
+const qglviewer::Vec static inline EtoQ(const Vec3e& v) {
+  return qglviewer::Vec(v.x(), v.y(), v.z());
 }
 
 /// Convenience method for converting a Vec3c to a Vec3e.
-const Vec3e static inline CtoE(const Vec3c& v) {
+const Vec3e static inline QtoE(const qglviewer::Vec& v) {
   return Vec3e(v.x, v.y, v.z);
 }
+
+// /// Convenience method for converting a Vec3e to a Vec3c. Useful for draw-time ops.
+// const Vec3c static inline EtoC(const Vec3e& v) {
+//   return Vec3c(v.x(), v.y(), v.z());
+// }
+
+// /// Convenience method for converting a Vec3c to a Vec3e.
+// const Vec3e static inline CtoE(const Vec3c& v) {
+//   return Vec3e(v.x, v.y, v.z);
+// }
 
 /// Returns a parallel transported vector given a previous vector and its orthogonal u component.
 Vec3e static parallelTransport(const Vec3e& vecPrev, const Vec3e& vecCur, const Vec3e& uPrev) {

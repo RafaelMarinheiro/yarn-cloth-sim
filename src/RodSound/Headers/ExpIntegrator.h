@@ -9,6 +9,8 @@
 #ifndef __Visualizer__ExpIntegrator__
 #define __Visualizer__ExpIntegrator__
 
+#include "Defines.h"
+
 #include "Integrator.h"
 
 class ExpIntegrator : public Integrator {

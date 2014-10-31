@@ -9,6 +9,8 @@
 #ifndef Visualizer_Constants_h
 #define Visualizer_Constants_h
 
+#include "Defines.h"
+
 namespace constants {
 
   /// Target timestep of the simulation in seconds.

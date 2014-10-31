@@ -25,6 +25,8 @@
 //#define EIGEN_DONT_PARALLELIZE
 //#define EIGEN_NO_DEBUG
 
+#include "Defines.h"
+
 #include "Eigen/Core"
 #include <cmath>
 #include <stdexcept>

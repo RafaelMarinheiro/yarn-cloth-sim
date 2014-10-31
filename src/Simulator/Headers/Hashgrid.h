@@ -9,6 +9,8 @@
 #ifndef __Visualizer__Hashgrid__
 #define __Visualizer__Hashgrid__
 
+#include "Defines.h"
+
 #include "Clock.h"
 #include <unordered_map>
 

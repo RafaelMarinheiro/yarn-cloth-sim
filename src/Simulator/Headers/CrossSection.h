@@ -9,6 +9,8 @@
 #ifndef Visualizer_CrossSection_h
 #define Visualizer_CrossSection_h
 
+#include "Defines.h"
+
 #include "autodiff.h"
 
 typedef DScalar2<real, 9, Eigen::Matrix<real, 9, 1>, Eigen::Matrix<real, 9, 9>> DS92;

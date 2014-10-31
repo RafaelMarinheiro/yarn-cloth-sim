@@ -9,6 +9,8 @@
 #ifndef __Visualizer__Rod__
 #define __Visualizer__Rod__
 
+#include "Defines.h"
+
 #include "Util.h"
 #include "Constants.h"
 #include "CrossSection.h"

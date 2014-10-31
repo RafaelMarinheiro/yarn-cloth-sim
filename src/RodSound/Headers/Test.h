@@ -9,6 +9,8 @@
 #ifndef Visualizer_Test_h
 #define Visualizer_Test_h
 
+#include "Defines.h"
+
 #include "Rod.h"
 #include "Energy.h"
 #include "ExpIntegrator.h"
