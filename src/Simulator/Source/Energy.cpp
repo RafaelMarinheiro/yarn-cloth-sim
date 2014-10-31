@@ -849,9 +849,8 @@ bool PlaneContact::eval(VecXe* Fx, std::vector<Triplet>* GradFx, const VecXe* of
     }
     if ((pos-origin).dot(normal) >= 0) continue;
     // else project onto the normal
-    Vec3e force = (origin-pos).dot(normal)*normal;
     if (Fx) {
-      Fx->segment<3>(3*i) += force * stiffness;
+      Fx->segment<3>(3*i) += (origin-pos).dot(normal)*normal * stiffness;
     }
     if (GradFx) {
       Mat3e hess = -stiffness * normal * normal.transpose();

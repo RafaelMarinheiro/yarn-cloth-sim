@@ -68,20 +68,39 @@ void ExpIntegrator::matFunc(const Eigen::SparseMatrix<real>& A, const VecXe& v, 
     return;
   }
   
+  // TESTING
+  /*
+  if (true) {
+    Eigen::SelfAdjointEigenSolver<MatXe> saes(A.toDense());
+    assert(saes.info() == Eigen::Success);
+    z.noalias() = saes.eigenvectors() * ((saes.eigenvalues().unaryExpr(f)).real()
+                                            .cwiseProduct(saes.eigenvectors().transpose() * v));
+    CHECK_NAN_VEC(z);
+    return;
+  }
+  */
+   
   // Otherwise, perform a the functions on a Krylov subspace.
   MatXe Q(v.rows(), m+1);
   MatXe H(m, m);
   arnoldi(A, v, Q, H); // sets Q and H. Q now has dimensions (n x m).
   
+  CHECK_NAN_VEC(Q);
+  CHECK_NAN_VEC(H);
+  
   if (H.isApprox(H.transpose())) {
     Eigen::SelfAdjointEigenSolver<MatXe> saes(H);
+    assert(saes.info() == Eigen::Success);
     
     // z = T * f(D) * T^T * e1. z is now (m x 1).
     z.noalias() = saes.eigenvectors() * (saes.eigenvalues()
                                          .unaryExpr(f)
                                          .cwiseProduct(saes.eigenvectors().row(0).transpose())).real();
+    CHECK_NAN_VEC(z);
   } else {
     Eigen::EigenSolver<MatXe> es(H);
+    assert(es.info() == Eigen::Success);
+    
     typedef Eigen::Matrix<complex, Eigen::Dynamic, 1> VecXec;
     VecXec zc;
     // zc = T * f(D) * T^(-1) * e1. zc is now (m x 1).
@@ -89,24 +108,36 @@ void ExpIntegrator::matFunc(const Eigen::SparseMatrix<real>& A, const VecXe& v, 
                                         .unaryExpr(f)
                                         .cwiseProduct(es.eigenvectors()
                                                       .lu().solve(VecXec::Unit(m, 0))));
+    CHECK_NAN_VEC(zc);
     // z is the real part of zc (hopefully zc has no imaginary component??). z is now (m x 1).
     z = zc.real();
-    if (zc.imag().norm() > 1e-10) {
+    if (zc.imag().norm() > 1e-20) {
       std::cout << "Warning: non-trivial imag component ignored: " << zc.imag().norm() << "\n";
+     
+      VecXe zTest = vNorm * (Q * z);
+      Eigen::SelfAdjointEigenSolver<MatXe> saes(A.toDense());
+      assert(saes.info() == Eigen::Success);
+      VecXe zref;
+      zref.noalias() = saes.eigenvectors() * ((saes.eigenvalues().unaryExpr(f)).real()
+                                              .cwiseProduct(saes.eigenvectors().transpose() * v));
+      CHECK_NAN_VEC(zref);
+      std::cout << "Difference from ref: " << (zref - zTest).norm() << "\n\n";
     }
   }
   // z = ||v|| * Q * z. z is now (n x 1).
   z = vNorm * (Q * z);
   CHECK_NAN_VEC(z);
   
-  /*
+  
   // TESTING
+  /*
   Eigen::SelfAdjointEigenSolver<MatXe> saes(A.toDense());
   assert(saes.info() == Eigen::Success);
-  VecXe ztest;
-  ztest.noalias() = saes.eigenvectors() * ((saes.eigenvalues().unaryExpr(f)).real()
+  VecXe zref;
+  zref.noalias() = saes.eigenvectors() * ((saes.eigenvalues().unaryExpr(f)).real()
                                            .cwiseProduct(saes.eigenvectors().transpose() * v));
-  real diff = (z - ztest).norm();
+  CHECK_NAN_VEC(zref);
+  real diff = (z - zref).norm();
   if (diff > 1e-13) {
     std::cout << "z test fail: " << diff << "\n";
   }
@@ -116,6 +147,7 @@ void ExpIntegrator::matFunc(const Eigen::SparseMatrix<real>& A, const VecXe& v, 
 
 bool ExpIntegrator::integrate(Clock& c) {
   bool argFiltering = false; // TODO: what does this do?
+  std::size_t dampingUpdateRate = 1;
   std::size_t krylovBasisSize = 15;
   
   real h = c.timestep();
@@ -123,23 +155,28 @@ bool ExpIntegrator::integrate(Clock& c) {
   std::function<complex(complex)> psi = [h] (complex k) {
     complex x = h * std::sqrt(k);
     x = (x == 0.0) ? 1.0 : sin(x) / x;
+    CHECK_NAN(x.real()); CHECK_NAN(x.imag());
     return x * x;
   };
   std::function<complex(complex)> phi = [h] (complex k) {
     complex x = h * std::sqrt(k);
-    return (x == 0.0) ? 1.0 : sin(x) / x;
+    x = (x == 0.0) ? 1.0 : sin(x) / x;
+    CHECK_NAN(x.real()); CHECK_NAN(x.imag());
+    return x;
   };
   std::function<complex(complex)> cosSqrt = [h] (complex k) {
-    return cos(h * std::sqrt(k));
+    complex x = cos(h * std::sqrt(k));
+    CHECK_NAN(x.real()); CHECK_NAN(x.imag());
+    return x;
   };
-  
-  if (c.getTicks() % 100 == 0) { // Periodically linearize the system
-    setDamping(); // Sets stiffness, damping and cachedA
-  }
   
   VecXe xcur = r.cur().pos - r.rest().pos;
   VecXe xprev = xcur - r.cur().vel * h;
   
+  
+  if (c.getTicks() % dampingUpdateRate == 0) { // Periodically linearize the system
+    setDamping(); // Sets stiffness, damping and cachedA
+  }
   
   VecXe xPhi;
   matFunc(cachedA, xcur, krylovBasisSize, phi, xPhi); // Sets xPhi
@@ -147,7 +184,7 @@ bool ExpIntegrator::integrate(Clock& c) {
   Eigen::SparseMatrix<real> APhi;
   
   if (argFiltering) {
-    VecXe del = xPhi - r.cur().pos;
+    VecXe del = xPhi - xcur;
     std::vector<Triplet> filteredStiffness;
     for (RodEnergy* e : energies) {
       if (e->energySource() == Internal) {
@@ -164,13 +201,14 @@ bool ExpIntegrator::integrate(Clock& c) {
     APhi = cachedA;
   }
   
-  VecXe del = xPhi - r.cur().pos;
+  VecXe del = xPhi - xcur;
   VecXe extForcesPhi = VecXe::Zero(r.numDOF());
   for (RodEnergy* e : energies) {
     if (e->energySource() == External) {
       e->eval(&extForcesPhi, nullptr, &del);
     }
   }
+  
   // NOTE: Lambda is defined as the opposite of the forces in the paper!
   extForcesPhi *= -1.0;
   VecXe lambdaPhi = extForcesPhi + damping * r.cur().vel;

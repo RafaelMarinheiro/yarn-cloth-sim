@@ -175,16 +175,17 @@ void RodSoundApp::setup()
   
   /*
   // TESTING
-  int start = 10;
-  int end = 15;
-  real amp = 1e-15;
+  int start = 0;
+  int end = 49;
+  real amp = 1e-2;
   for (int i=start; i <= end; i++) {
-    r->next().pos(3*i) += std::sin(((real)(i-start))/((real)(end-start))*constants::pi) * amp;
+    r->next().pos(3*i+2) += std::sin(((real)(i-start))/((real)(end-start))*constants::pi) * amp;
   }
   
   r->next().updateReferenceFrames(r->cur());
   r->swapRods();
    */
+  
   
   PROFILER_START("Total");
 }
@@ -568,7 +569,7 @@ void RodSoundApp::loadRodFile(std::string filename) {
 void RodSoundApp::loadDefaultRod(int numPoints) {
   if (r) delete r;
   
-  Vec3e start = Vec3e(0.0, 1.6069, 0.0); // Vec3e(0.5, 1.0, 0.5);
+  Vec3e start = Vec3e(0.0, 1.6069, 0.0); // Vec3e(0.5, 0.5, 0.5);
   Vec3e end   = Vec3e(0.0, 1.0, 0.0); // start + (Vec3e(-1.0, -1.0, -1.0).normalized() * 0.6069);
   // 1ft. = 0.3048m
   // 2ft. = 0.6069m
@@ -601,7 +602,7 @@ void RodSoundApp::loadDefaultRod(int numPoints) {
                     (constants::rhoRod * r->getCS()[0].area() * l * l * l * l));
   std::cout << "kappa: " << kappa << "\n";
   real h = l / (numPoints-1);
-  real k = 1.0 / (44100*multiSample);
+  real k = 1.0 / (SampleRate*multiSample);
   real mu = kappa * k / (h * h);
   std::cout << "mu: " << mu << "\n";
   
@@ -626,7 +627,7 @@ void RodSoundApp::loadStdEnergies() {
   
   
   RodEnergy* stretch = new Stretching(*r, Explicit);
-//  energies.push_back(stretch);
+  energies.push_back(stretch);
   // OR
   //RodConstraint* length = new Length(*r);
   //constraints.push_back(length);
@@ -652,10 +653,10 @@ void RodSoundApp::loadStdEnergies() {
   RodEnergy* floor = new PlaneContact(*r, Explicit, floorNormal, floorOrigin, 5000.0);
 //  energies.push_back(floor);
   
-  Vec3e imp1dir(1.0e-10, 0.0, 0.0);
+  Vec3e imp1dir(0.0, 0.0, 1e4);
   Vec3e imp2dir(-1.0e-5, 0.0, 0.0);
   Vec3e imp3dir(0.0, 0.0, 1.0e-10);
-  RodEnergy* imp1 = new Impulse(*r, Explicit, c, 0.2, 0.201, imp1dir, 3);
+  RodEnergy* imp1 = new Impulse(*r, Explicit, c, 0.2, 0.2001, imp1dir, 3);
   RodEnergy* imp2 = new Impulse(*r, Explicit, c, 0.2, 0.201, imp2dir, r->numCPs()-2);
   RodEnergy* imp3 = new Impulse(*r, Explicit, c, 0.2, 0.201, imp3dir, r->numCPs()-1);
   energies.push_back(imp1);  // energies.push_back(imp2); // energies.push_back(imp3);
